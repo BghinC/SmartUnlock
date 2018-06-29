@@ -1,0 +1,109 @@
+﻿<! Pour développer l'application Ionic referez-vous au README.md>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" ng-app="MyDemoApp">
+<head>
+    <title>Serrure connectée</title>
+    <link rel="icon" href="logo_constellation.png" />
+    <link rel="stylesheet" type="text/css" href="index.css" />
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/signalr/jquery.signalr-2.2.2.min.js"></script>
+    <script type="text/javascript" src="https://cdn.myconstellation.io/js/Constellation-1.8.2.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
+    <script type="text/javascript" src="https://cdn.myconstellation.io/js/ngConstellation-1.8.2.min.js"></script>
+    
+    <!Constellation>
+    <script>
+        var myDemoApp = angular.module('MyDemoApp', ['ngConstellation']);
+        myDemoApp.controller('MyController', ['$scope',  'constellationConsumer', function ($scope, constellation) {
+  		  
+          	constellation.initializeClient("http://localhost:8088", "Constellation_key", "WebPage");
+
+          	constellation.onConnectionStateChanged(function (change) {
+	            if (change.newState === $.signalR.connectionState.connected) {
+	                //console.log("Je suis connecté !");
+
+	                constellation.registerStateObjectLink("*","SerrurePackage","Serrure","*",function(so){
+                    	$scope.Serrure = so.Value;
+                    	$scope.$apply();
+                    });     
+	            }
+             
+            });
+          
+          
+          	$scope.openDoor = function(){
+                constellation.sendMessage({Scope: 'Package', Args: ['SerrurePackage']}, 'OpenDoor');
+            };
+ 
+            
+          constellation.connect();
+ 
+        }]);
+    </script>
+ 
+</head>
+ 
+<body ng-controller="MyController">
+
+
+	<!Gestion de la porte!>
+
+	<div class="bandeau">
+		<h1>Gestion de votre porte d'entrée</h1>
+	</div>
+
+    <div id="porte">
+    	<button class="btn" ng-click="openDoor()"> Ouvrir la porte </button>
+    </div>
+    <div>
+    	<h3>Serrure : {{ Serrure['etat'] ? "Ouverte":"Fermée" }}</h3>
+    </div>
+
+    <! Ajouter une personne dans la base de donnée !>
+
+    <div id="webcam">
+    	<div class="bandeau">
+      		<h1>Ajouter une personne dans la base de données</h1>
+      	</div>
+     	<div id="conteneur">
+     		<div>
+     			<video autoplay id="vid"></video>
+     		</div>
+     		<div id="bouton_capture">
+     			<button onclick="snapshot()" class="btn">Take Picture</button>
+     		</div>
+     		<div>
+     			<canvas id="canvas" width="640" height="480">Votre navigateur ne supporte pas la méthode d'affichage.</canvas>
+     		</div>
+			
+			<script type="text/javascript">
+			    var video = document.querySelector("#vid");
+			    var canvas = document.querySelector('#canvas');
+			    var ctx = canvas.getContext('2d');
+			    var localMediaStream = null;
+
+			    var onCameraFail = function (e) {
+			        console.log('La camera ne fonctione pas.', e);
+			    };
+
+			    function snapshot() {
+			        if (localMediaStream) {
+			            ctx.drawImage(video, 50, 0);
+			        }
+			    }
+
+			    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia;
+			    window.URL = window.URL || window.webkitURL;
+			    navigator.getUserMedia({video:true}, function (stream) {
+			        video.src = window.URL.createObjectURL(stream);
+			        localMediaStream = stream;
+			    }, onCameraFail);
+
+			</script>
+     	</div>
+    </div>
+
+    
+</body>
+</html>
