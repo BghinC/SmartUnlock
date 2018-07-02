@@ -1,0 +1,39 @@
+/* Empty. Add your own CSS if you like */
+body{
+	background-color: #E8ECEB;
+	text-align: center;
+}
+
+h1{
+	color: #FFFFFF;
+}
+
+.bandeau{
+	background-color: #4267B2;
+	margin-bottom: 50px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.btn {
+  border-radius: 60px;
+  font-family: Georgia;
+  color: #FFFFFF;
+  font-size: 21px;
+  padding: 17px;
+  background-color: #4267B2;
+  text-decoration: none;
+  margin-bottom: 25px;
+}
+
+.btn:hover{
+	cursor:pointer;
+}
+
+#conteneur{
+	display:flex;
+}
+
+#bouton_capture{
+	margin: auto;
+}
