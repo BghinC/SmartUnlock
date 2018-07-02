@@ -1,4 +1,3 @@
-
 using Constellation;
 using Constellation.Package;
 using System;
@@ -18,14 +17,14 @@ namespace Brain
 {
     public class Program : PackageBase
     {
+        // Crée un lien sur le S.O. etatSonnette
         [StateObjectLink("SerrurePackage", "etatSonnette")]
         private StateObject Sonnette { get; set; }
 
-        // Microsoft Azure Visage subscription key
-        const string SUBSCRIPTION_KEY = "set your subscription key";
-        const string uriBase =
-            "https://westeurope.api.cognitive.microsoft.com/face/v1.0/detect";
+        const string SUBSCRIPTION_KEY = "95982845813248389b6d3ceb183f163f";
+        const string uriBase ="https://westeurope.api.cognitive.microsoft.com/face/v1.0/detect";
         const string FIND_FACEID = "faceId";
+        const string FIND_ISIDENTICAL = "isIdentical";
 
         public class Result_face_verify
         {
@@ -44,6 +43,8 @@ namespace Brain
         {
             PackageHost.WriteInfo("Package starting - IsRunning: {0} - IsConnected: {1}", PackageHost.IsRunning, PackageHost.IsConnected);
             PackageHost.WriteInfo("je demarre le brain");
+            
+            // A chaque MàJ du S.O. etatSonnette on regarde sa valeur
             PackageHost.StateObjectUpdated += (s, e) =>
             {
                 if (e.StateObject.Name == "etatSonnette")
@@ -68,15 +69,21 @@ namespace Brain
             PackageHost.WriteInfo("--------------------- Face - Detect ---------------------\n");
             Console.WriteLine("--------------------- Face - Detect ---------------------\n");
 
+            // Obtention des faceID des photos "témoins"
             string[] fichiersTemoins = Directory.GetFiles(@"D:\images\Photos_Temoins");
             string[] listeFaceIDTemoins = await FaceIDPhotosTemoins(fichiersTemoins);
+            
+            // Obtention du faceID de la photo qui vient d'être prise
             string imageFilePath = @"D:\images\image.jpg";
             string faceId2 = await FaceIDAsync(imageFilePath);
+            
+            // Si y'a un bien un faceID on peut continuer l'analyse
             if (faceId2 != "")
             {
                 Console.WriteLine("\nfaceId2 : " + faceId2 + "\n");
                 keep_going = true;
             }
+            // Sinon on affiche un message
             else Console.WriteLine("\nfaceId2 invalide\n");
 
             if (keep_going)
@@ -85,11 +92,14 @@ namespace Brain
                 PackageHost.WriteInfo("--------------------- Face - Verify ---------------------\n");
                 Console.WriteLine("--------------------- Face - Verify ---------------------\n");
                 int i = 0;
+                // Envoi à Cognitives Services des faceID de chaque photo témoin avec le faceID de la photo prise
                 while (i < listeFaceIDTemoins.Length && !samePerson)
                 {
                     Result_face_verify verif = await MakeRequestFaceVerify(listeFaceIDTemoins[i], faceId2);
                     PackageHost.WriteInfo("\nVerification :\nisIdentical : " + verif.IsIdentical + ", condifence : " + Convert.ToString(verif.Confidence) + "\n\n\n");
                     Console.Write("\nVerification :\nisIdentical : " + verif.IsIdentical + ", condifence : " + Convert.ToString(verif.Confidence) + "\n\n\n");
+                    
+                    // Si la personne qui a été prise en photo est dans les photos témoins, on ouvre la porte
                     if (verif.IsIdentical == true)
                     {
                         samePerson = true;
@@ -97,6 +107,7 @@ namespace Brain
                     }
                     i++;
                 }
+                // S'il n'y a pas eu de correspondance, envoi de la photo avec PushBullet
                 if (!samePerson)
                 {
                     Console.Write("\nPersonne autorisee non reconnue\n");
@@ -143,6 +154,7 @@ namespace Brain
             string faceId;
             string faceId_String = "";
 
+            // Si le fichier existe, on récupère le faceID
             if (File.Exists(imageFilePath))
             {
                 // Execute the REST API call.
@@ -156,6 +168,7 @@ namespace Brain
                     Console.WriteLine("\n" + Convert.ToString(e.Message) + "\nPress Enter to exit...\n");
                 }
             }
+            // Sinon, affichage d'un message d'erreur
             else
             {
                 Console.WriteLine("\nInvalid file path.\nPress Enter to exit...\n");
@@ -165,7 +178,7 @@ namespace Brain
 
 
         /// <summary>
-        /// Utilise la Face REST API pour avoir l'analyse d'une image spécifiée
+        /// Utilise la Face REST API pour avoir l'analyse d'une image spécifiée et obtenir le faceID
         /// </summary>
         /// <param name="imageFilePath">The image file.</param>
         private static async Task<string> MakeFaceAnalysisRequest(string imageFilePath)
@@ -173,8 +186,7 @@ namespace Brain
             HttpClient client = new HttpClient();
 
             // Request headers.
-            client.DefaultRequestHeaders.Add(
-                "Ocp-Apim-Subscription-Key", SUBSCRIPTION_KEY);
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", SUBSCRIPTION_KEY);
 
             // Request parameters. A third optional parameter is "details".
             string requestParameters = "returnFaceId=true&returnFaceLandmarks=false" +
@@ -190,8 +202,7 @@ namespace Brain
 
             using (ByteArrayContent content = new ByteArrayContent(byteData))
             {
-                content.Headers.ContentType =
-                    new MediaTypeHeaderValue("application/octet-stream");
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
                 // Execute the REST API call.
                 response = await client.PostAsync(uri, content);
@@ -202,6 +213,8 @@ namespace Brain
                 // Display the JSON response.
                 Console.WriteLine("\nResponse:");
                 Console.Write(contentString);
+                
+                // Recherche du faceID dans la réponse 
                 string faceId = SearchFaceId(contentString, FIND_FACEID);
                 return faceId;
             }
@@ -225,7 +238,7 @@ namespace Brain
 
 
         /// <summary>
-        /// Cherche la faceID dans un string
+        /// Cherche le faceID dans un string
         /// </summary>
         /// <param name="source"></param>
         /// <param name="recherche"></param>
@@ -280,8 +293,10 @@ namespace Brain
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
                 response = await client.PostAsync(uri, content);
                 var responseString = await response.Content.ReadAsStringAsync();
+                // Affichage de la réponse
                 Console.Write("Response : " + responseString);
-                faceVerify = SearchFaceVerify(responseString, "isIdentical");
+                // Recherche des éléments "isIdentical" et "confidence" dans la réponse
+                faceVerify = SearchFaceVerify(responseString, FIND_ISIDENTICAL);
             }
             return faceVerify;
         }
@@ -298,13 +313,14 @@ namespace Brain
             bool find = false;
             int lenSource = source.Length;
             string bufferIsIdentical = "";
-            int indexFaceId = source.IndexOf(recherche); // -1 si il n'y est pas
+            
+            int indexIsIdentical = source.IndexOf(recherche); // -1 si il n'y est pas
 
             Result_face_verify resultat = new Result_face_verify { };
 
-            if (indexFaceId != -1)
+            if (indexIsIdentical != -1)
             {
-                int newIndex = indexFaceId + 13;  // "isIdentical":true,  ou  "isIdentical":false,
+                int newIndex = indexIsIdentical + 13;  // "isIdentical":true,  ou  "isIdentical":false,
                 while (!find && newIndex < lenSource)
                 {
                     if (source[newIndex] != ',')
@@ -316,10 +332,10 @@ namespace Brain
                 }
 
                 // {"isIdentical":false,"confidence":0.18558}
-                int indexIsIdentical = source.IndexOf("confidence");
-                if (indexIsIdentical != -1)
+                int indexConfidence = source.IndexOf("confidence");
+                if (indexConfidence != -1)
                 {
-                    newIndex = indexIsIdentical + 12;
+                    newIndex = indexConfidence + 12;
                     find = false;
                     string bufferConfidence = "";
                     while (!find && newIndex < lenSource)
