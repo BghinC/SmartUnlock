@@ -21,7 +21,7 @@ namespace Brain
         [StateObjectLink("SerrurePackage", "etatSonnette")]
         private StateObject Sonnette { get; set; }
 
-        const string SUBSCRIPTION_KEY = "95982845813248389b6d3ceb183f163f";
+        const string SUBSCRIPTION_KEY = "YOUR_SUBSCRIPTION_KEY";
         const string uriBase ="https://westeurope.api.cognitive.microsoft.com/face/v1.0/detect";
         const string FIND_FACEID = "faceId";
         const string FIND_ISIDENTICAL = "isIdentical";
