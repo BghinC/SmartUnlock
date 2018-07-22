@@ -10,4 +10,4 @@ Une personne sonne à la porte, une photo est alors prise par la caméra. La rec
 
 Démonstration :
 
-![Démo](Images/Figure7.png "Démonstration")
+![Démo](Images/Figure7.gif "Démonstration")
