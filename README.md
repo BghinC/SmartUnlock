@@ -161,8 +161,6 @@ Pour le site web, nous avons ajouté un script qui permet de prendre une photo d
 ![Site web](Images/Figure9.PNG "Site web")
 
 Ce qui se trouve dans le site ou l’application est parfaitement intégrable dans vos projets déjà existant.
-=======
-![Schéma synthétisant le projet](Images/Figure1.png "Schéma synthétisant le projet")
 
 Démonstration :
 
