@@ -6,7 +6,6 @@ Smart Unlock vous permet d'ouvrir simplement votre porte d'entrée par reconnais
 
 ![Schéma synthétisant le projet](Images/Figure1.png "Schéma synthétisant le projet")
 
-<<<<<<< HEAD
 Voici le fonctionnement général de « Smart Unlock ». Une personne sonne à la porte, une photo est alors prise par la caméra. La reconnaissance faciale commence grâce à « Microsoft Cognitive Services ». Si le visage est reconnu, la porte s’ouvre sinon la photo de la personne ayant sonné vous est envoyée sur vos différents appareils. Vous pouvez, si vous le désirez, ouvrir à distance votre porte d'entrée grâce à une application mobile ou un site web.
 
 
@@ -168,4 +167,3 @@ Ce qui se trouve dans le site ou l’application est parfaitement intégrable da
 Démonstration :
 
 ![Démo](Images/Figure7.gif "Démonstration")
->>>>>>> 21994e075c41279e65235db4aa7eb00b9894735b
